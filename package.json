@@ -1,0 +1,22 @@
+{
+  "name": "e2w",
+  "version": "1.0.0",
+  "description": "Excel to WoCoommerce (API Rest client)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lbonomo/Excel2WooCommerce.git"
+  },
+  "keywords": [
+    "WooCommerce"
+  ],
+  "author": "Lucas Bonomo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lbonomo/Excel2WooCommerce/issues"
+  },
+  "homepage": "https://github.com/lbonomo/Excel2WooCommerce#readme"
+}
