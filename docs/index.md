@@ -23,7 +23,7 @@ The config file is a json format similar this:
   }
 }
 ```
-You can download an example at this [link](https://github.com/lbonomo/woo/blob/master/config.json.example)
+You can download an example at this [link](https://github.com/lbonomo/woo/blob/master/config.json.example?raw=true)
 
 ## Input
-The input file is a Excel format 2007-365 file. You can download a example at this [link](https://github.com/lbonomo/woo/blob/master/example.xlsx)
+The input file is a Excel format 2007-365 file. You can download a example at this [link](https://github.com/lbonomo/woo/blob/master/example.xlsx?raw=true)
