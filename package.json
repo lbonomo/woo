@@ -6,7 +6,7 @@
   "bin": "woo.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "pkg --target node12-linux-x64,node12-win-x64 --output build/woo ."
+    "build": "pkg --target node12-win-x64 --output docs/build/woo.exe . && pkg --target node12-linux-x64 --output docs/build/woo ."
   },
   "repository": {
     "type": "git",
