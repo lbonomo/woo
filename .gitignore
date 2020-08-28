@@ -1,0 +1,6 @@
+config.json
+lucasbonomo.json
+package-lock.json
+logs/
+build/
+node_modules/
