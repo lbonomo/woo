@@ -1,7 +1,7 @@
 {
   "name": "woo",
   "version": "1.0.0",
-  "description": "WooCommerce CLI (API Rest client)",
+  "description": "WooCommerce API Rest client",
   "main": "woo.js",
   "bin": "woo.js",
   "scripts": {

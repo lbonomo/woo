@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "woocommerce": {
+    "url": "http://plugins.lndo.site/" ,
+    "consumerKey": "ck_8e93fe5be9adb74cb6aa2cf433ff081c0e05a60d",
+    "consumerSecret": "cs_3569d906ba2f864364b4402f3f4ca4bd0d203dfe",
+    "wpAPI": true,
+    "version": "wc/v3"
+  },
+  "source": {
+    "filename": "example.xlsx"
+  }
+}

@@ -23,8 +23,3 @@ For more info about WooCommerce REST API read this [link](https://docs.woocommer
 
 ## Logs
 All the processes register in log file into the `logs` directory with the next format `woo-YYYYMMDD.log` if you like to remove this action, you need to add `--no-logs or -n` argument when execute the command
-
-## WP CLI
-```
-lando wp wc --path='./wordpress' --fields="id,sku"
-```
