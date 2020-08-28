@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lbonomo/Excel2WooCommerce.git"
+    "url": "git+https://github.com/lbonomo/woo.git"
   },
   "keywords": [
     "WooCommerce"
@@ -18,9 +18,9 @@
   "author": "Lucas Bonomo",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lbonomo/Excel2WooCommerce/issues"
+    "url": "https://github.com/lbonomo/woo/issues"
   },
-  "homepage": "https://github.com/lbonomo/Excel2WooCommerce#readme",
+  "homepage": "https://github.com/lbonomo/woo#readme",
   "dependencies": {
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "commander": "^6.0.0",
