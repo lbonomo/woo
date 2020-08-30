@@ -1,9 +1,9 @@
 {
   "version": 1,
   "woocommerce": {
-    "url": "http://plugins.lndo.site/" ,
-    "consumerKey": "ck_8e93fe5be9adb74cb6aa2cf433ff081c0e05a60d",
-    "consumerSecret": "cs_3569d906ba2f864364b4402f3f4ca4bd0d203dfe",
+    "url": "http://woocommerce.lndo.site/" ,
+    "consumerKey": "ck_a6849f91fc021160c8fde2dadc9aa91aa733f46d",
+    "consumerSecret": "cs_29abba0e6335270b904328494d908efa2937479b",
     "wpAPI": true,
     "version": "wc/v3"
   },
