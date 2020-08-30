@@ -1,12 +1,12 @@
 {
   "name": "woo",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "WooCommerce API Rest client",
   "main": "woo.js",
   "bin": "woo.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "pkg --target node12-win-x64 --output docs/build/woo.exe . && pkg --target node12-linux-x64 --output docs/build/woo ."
+    "build": "pkg --target node12-win-x64 --output assest/build/woo.exe . && pkg --target node12-linux-x64 --output assest/build/woo ."
   },
   "repository": {
     "type": "git",
