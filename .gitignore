@@ -1,5 +1,8 @@
+build/
+logs/
+node_modules/
 config.json
 lucasbonomo.json
 package-lock.json
-logs/
-node_modules/
+upload.sh
+after-finish.sh
