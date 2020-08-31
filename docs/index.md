@@ -2,8 +2,8 @@
 
 If you like to download the binary version, use this links
 
- - [Window x86-64](./build/woo.exe)
- - [Linux x86-64](./build/woo.exe)
+ - [Window x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.2/woo.exe)
+ - [Linux x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.2/woo)
 
 ## Config
 The config file is a json format similar this:
@@ -27,3 +27,6 @@ You can download an example at this [link](https://github.com/lbonomo/woo/blob/m
 
 ## Input
 The input file is a Excel format 2007-365 file. You can download a example at this [link](https://github.com/lbonomo/woo/blob/master/example.xlsx?raw=true)
+
+## Runing
+[![Watch the video](./woo-2020-08-31_10.59.23.png)](./woo-2020-08-31_10.59.23.mp4)
