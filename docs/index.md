@@ -27,3 +27,6 @@ You can download an example at this [link](https://github.com/lbonomo/woo/blob/m
 
 ## Input
 The input file is a Excel format 2007-365 file. You can download a example at this [link](https://github.com/lbonomo/woo/blob/master/example.xlsx?raw=true)
+
+## Runing
+[![Watch the video](./woo-2020-08-31_10.59.23.png)](./woo-2020-08-31_10.59.23.mp4)

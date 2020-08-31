@@ -6,3 +6,5 @@ lucasbonomo.json
 package-lock.json
 upload.sh
 after-finish.sh
+new-release.sh
+upload-files.sh
