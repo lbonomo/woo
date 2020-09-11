@@ -30,4 +30,4 @@ The input file is a Excel format 2007-365 file. You can download a example at th
 
 ## Runing
 <!-- ffmpeg -i woo-2020-08-31_10.59.23.mp4 woo-2020-08-31_10.59.23.gif -->
-![Watch the video](./woo-2020-08-31_10.59.23.gif)
+![Watch the video](./woo.gif)
