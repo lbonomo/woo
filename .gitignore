@@ -2,6 +2,8 @@ build/
 logs/
 node_modules/
 config.json
+config-bad.json
+config-test.json
 lucasbonomo.json
 package-lock.json
 after-finish.sh

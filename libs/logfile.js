@@ -8,6 +8,10 @@ const YYYYMMDD = () => {
   return `${year}${mount}${day}`
 }
 
+const failure = '\x1b[31m✖\x1b[0m'
+const successful = '\x1b[32m✓\x1b[0m'
+const SimpleNodeLogger = require('simple-node-logger')
+
 // CLASS - Logger.
 const Logger = class {
   constructor (logs, silent) {
@@ -20,7 +24,6 @@ const Logger = class {
     const logDirectory = './logs'
     !fs.existsSync(logDirectory) && fs.mkdirSync(logDirectory)
 
-    const SimpleNodeLogger = require('simple-node-logger')
     const opts = {
       level: 'info',
       logFilePath: `./${logDirectory}/woo-${YYYYMMDD()}.log`,
@@ -32,8 +35,12 @@ const Logger = class {
       case 'INFO':
         log.info(message)
         break
+      case 'SUCCESSFUL':
+        log.info(`${message} ${successful}`)
+        break
       case 'ERROR':
-        log.error(message)
+        log.error(`${message} ${failure}`)
+
         break
       default:
         log.info(message)
