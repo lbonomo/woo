@@ -2,9 +2,11 @@ build/
 logs/
 node_modules/
 config.json
+config*.json
+*.XLSX
 lucasbonomo.json
 package-lock.json
-upload.sh
 after-finish.sh
 new-release.sh
 upload-files.sh
+upload.sh
