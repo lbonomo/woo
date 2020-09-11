@@ -97,9 +97,20 @@ const Product = class {
         data: products
       }
     } else {
+      let message
+      switch (response.status) {
+        case 404:
+          message = 'Server not found. Please verify your config file'
+          break
+        case 401:
+          message = 'Unauthorized. Please verify "consumerKey" and "consumerSecret" in your config file'
+          break
+        default:
+          message = `(${response.status}) ${response.statusText}`
+      }
       return {
         status: 'failure',
-        data: { message: response.statusText }
+        data: { message: message }
       }
     }
   }

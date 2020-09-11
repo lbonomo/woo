@@ -32,7 +32,7 @@ var { cfgWC, cfgInput } = {}
  * @param {json}    inputData Json white status and data/message
  */
 const BatchUpdate = async (connect, data) => {
-  logger.log('Get alls products')
+  logger.log('Try to get all products')
 
   // TODO - Query the Rest API (GetAllProducts).
   const response = await wcProducts.GetAllProducts(connect)
@@ -86,7 +86,7 @@ const BatchUpdate = async (connect, data) => {
     } while (batchData.length > 0 && next)
   } else {
     // Can't get all products
-    logger.log(`${response.message}`, 'ERROR')
+    logger.log(`${response.data.message}`, 'ERROR')
   }
 }
 
