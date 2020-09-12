@@ -2,8 +2,8 @@
 
 If you like to download the binary version, use this links
 
- - [Window x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.3/woo.exe)
- - [Linux x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.3/woo)
+ - [Window x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.4/woo.exe)
+ - [Linux x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.4/woo)
 
 ## Config
 The config file is a json format similar this:
@@ -29,5 +29,5 @@ You can download an example at this [link](https://github.com/lbonomo/woo/blob/m
 The input file is a Excel format 2007-365 file. You can download a example at this [link](https://github.com/lbonomo/woo/blob/master/example.xlsx?raw=true)
 
 ## Runing
-<!-- ffmpeg -i woo-2020-08-31_10.59.23.mp4 woo-2020-08-31_10.59.23.gif -->
+<!-- ffmpeg -i woo.mp4 -vf "fps=15,scale=800:-1:flags=lanczos" woo.gif -->
 ![Watch the video](./woo.gif)

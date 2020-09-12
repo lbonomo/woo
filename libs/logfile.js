@@ -14,9 +14,8 @@ const SimpleNodeLogger = require('simple-node-logger')
 
 // CLASS - Logger.
 const Logger = class {
-  constructor (logs, silent) {
+  constructor (logs) {
     this.logs = logs
-    this.silent = silent
   }
 
   Logfile (message, level = 'INFO') {
@@ -50,10 +49,6 @@ const Logger = class {
   log (message, level) {
     if (this.logs) {
       this.Logfile(message.toString(), level)
-    } else {
-      if (!this.silent) {
-        console.log(message)
-      }
     }
   }
 }
