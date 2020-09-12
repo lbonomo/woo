@@ -27,7 +27,7 @@ var { cfgWC, cfgInput } = {}
 /**
  * This function get alls products and return ID and SKU
  * @param  {object} connect WooCommerce connection config
- * @return {json}           Json white status and data/message
+ * @return {json}           Json with status and data (all products or error message)
  */
 const GetAllProducts = async (connect) => {
   // Directory with alls products (id: sku.)
@@ -82,7 +82,6 @@ const GetAllProducts = async (connect) => {
  */
 const BatchUpdate = async (connect, data) => {
   logger.log('Try to get all products')
-
 
   const response = await GetAllProducts(connect)
 
@@ -158,10 +157,10 @@ const main = async () => {
 
   // Load input data
   if (inputData.status === 'successful') {
-    // console.log(inputData.data)
+    logger.log(`Just ${Object.keys(inputData.data).length} products in ${cfgInput}`, 'SUCCESSFUL')
   } else {
     // Can't read excel or format incorrect
-    logger.log(inputData.data.message)
+    logger.log(inputData.data.message, 'ERROR')
   }
 
   // Batch process

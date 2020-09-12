@@ -10,3 +10,4 @@ after-finish.sh
 new-release.sh
 upload-files.sh
 upload.sh
+github.vars
