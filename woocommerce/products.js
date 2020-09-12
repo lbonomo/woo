@@ -27,10 +27,18 @@ const Product = class {
     return productID
   }
 
-  async GetProducts (connect) {
+  /**
+   * This function get alls products and return ID and SKU
+   * @param  {object} connect WooCommerce connection config
+   * @param  {number} page    Page
+   * @return {json}           Json white status and data/message
+   */
+  async GetProducts (connect, page) {
+    // https://developer.wordpress.org/rest-api/using-the-rest-api/pagination/.
+    // per_page=: specify the number of records to return in one request, specified as an integer from 1 to 100.
     const params = {
-      page: 1,
-      per_page: 100
+      page: page,
+      per_page: 100 // 100 is the max permit value.
     }
 
     const response = await connect.get('products', params)
@@ -42,59 +50,6 @@ const Product = class {
       return {
         status: 'successful',
         data: response.data
-      }
-    } else {
-      return {
-        status: 'failure',
-        data: { message: response.statusText }
-      }
-    }
-  }
-
-  /**
-   * This function get alls products and return ID and SKU
-   * @param  {object} connect WooCommerce connection config
-   * @return {json}           Json white status and data/message
-   */
-  async GetAllProducts (connect) {
-    // https://developer.wordpress.org/rest-api/using-the-rest-api/pagination/.
-    // per_page=: specify the number of records to return in one request, specified as an integer from 1 to 100.
-    const params = {
-      page: 1,
-      per_page: 100 // 100 is the max permit value.
-    }
-
-    // Directory with alls products (id: sku.)
-    const products = {}
-
-    // Loop
-    let response = {}
-    let next = true
-    do {
-      // Query API.
-      response = await connect.get('products', params)
-        .then((result) => {
-          result.data.forEach((product) => {
-            products[product.sku] = product.id
-          })
-          return result
-        })
-        .catch((error) => { return error.response })
-
-      // If the variable "data" has less than 100 records, exit the loop.
-      if (Object.keys(response.data).length !== params.per_page) {
-        next = false
-      } else {
-        // If not, next page.
-        params.page = params.page + 1
-      }
-    } while (next)
-
-    // Return
-    if (response.status === 200) {
-      return {
-        status: 'successful',
-        data: products
       }
     } else {
       let message
