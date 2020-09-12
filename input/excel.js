@@ -13,7 +13,7 @@ const Excel = class {
         if (workSheetsFromFile[0].data[row].length >= 1 && row >= 1) {
           const product = workSheetsFromFile[0].data[row]
           data.push({
-            sku: product[0],
+            sku: String(product[0]),
             regular_price: product[1],
             sale_price: product[2],
             stock_quantity: product[3]
