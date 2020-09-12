@@ -27,7 +27,7 @@ var { cfgWC, cfgInput } = {}
 /**
  * This function get alls products and return ID and SKU
  * @param  {object} connect WooCommerce connection config
- * @return {json}           Json white status and data/message
+ * @return {json}           Json with status and data (all products or error message)
  */
 const GetAllProducts = async (connect) => {
   // Directory with alls products (id: sku.)
@@ -81,25 +81,25 @@ const GetAllProducts = async (connect) => {
  * @param {json}    inputData Json white status and data/message
  */
 const BatchUpdate = async (connect, data) => {
+  const dataInput = data // Array of { sku: '', regular_price: 1, sale_price: 0.76, stock_quantity: 2 }
   logger.log('Try to get all products')
-
 
   const response = await GetAllProducts(connect)
 
   if (response.status === 'successful') {
     logger.log(`Download ${Object.keys(response.data).length} products`, 'SUCCESSFUL')
-    const products = response.data // { id:sku.... }
+    const productsWoo = response.data // List of products from WooCommerce { sku:id }
     // update: [ { id: 799, regular_price:'' ,sale_price:'' ,stock_quantity:'' ]
     const batchData = []
 
-    // Merge data
+    // Merge data (Excel <> WooComerce)
     // For data in input add id field and make batchData
-    data.forEach((item, i) => {
+    dataInput.forEach((item, i) => {
       // Find SKU ()
-      if (Object.keys(products).includes(item.sku.toString())) {
+      if (Object.keys(productsWoo).includes(item.sku.toString())) {
         batchData.push({
           // if SKU do not existe in WooCommerce Alert
-          id: products[item.sku],
+          id: productsWoo[item.sku],
           regular_price: item.regular_price,
           sale_price: item.sale_price,
           stock_quantity: item.stock_quantity
@@ -158,10 +158,10 @@ const main = async () => {
 
   // Load input data
   if (inputData.status === 'successful') {
-    // console.log(inputData.data)
+    logger.log(`Just ${Object.keys(inputData.data).length} products in ${cfgInput}`, 'SUCCESSFUL')
   } else {
     // Can't read excel or format incorrect
-    logger.log(inputData.data.message)
+    logger.log(inputData.data.message, 'ERROR')
   }
 
   // Batch process
