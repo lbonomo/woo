@@ -4,6 +4,7 @@ node_modules/
 config.json
 config*.json
 *.XLSX
+.~lock.*#
 lucasbonomo.json
 package-lock.json
 after-finish.sh
