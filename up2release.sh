@@ -15,7 +15,7 @@ upload_url="${upload_url%\{*}"
 
 echo "Uploading asset to release to url : $upload_url"
 
-for file in { 'woo.exe' 'woo' }
+for file in 'woo.exe' 'woo'
 do
   echo "Upload $file"
   curl -s -H "Authorization: token $github_api_token" \

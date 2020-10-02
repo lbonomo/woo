@@ -2,8 +2,8 @@
 
 If you like to download the binary version, use this links
 
- - [Window x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.5/woo.exe)
- - [Linux x86-64](https://github.com/lbonomo/woo/releases/download/v0.0.5/woo)
+ - [Window x86-64](https://github.com/lbonomo/woo/releases/download/v0.1.0/woo.exe)
+ - [Linux x86-64](https://github.com/lbonomo/woo/releases/download/v0.1.0/woo)
 
 ## Config
 The config file is a json format similar this:
