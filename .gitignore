@@ -11,3 +11,5 @@ new-release.sh
 upload-files.sh
 upload.sh
 github.vars
+note.md
+test/
