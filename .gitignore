@@ -1,5 +1,6 @@
 build/
 logs/
+cache/
 node_modules/
 config.json
 config*.json
