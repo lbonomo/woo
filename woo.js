@@ -1,5 +1,5 @@
+const fs = require('fs');
 const { Command } = require('commander')
-
 const { Logger } = require('./libs/logfile')
 const { LoadConfig } = require('./libs/config')
 const { Excel } = require('./input/excel')
@@ -113,6 +113,10 @@ const GetAllProducts = async (connect) => {
     Object.assign(allProducts, x);
   } while (parentIDs.length > 0);
 
+  if ( cfgWC.cache ) {
+    await SaveProductsCache(allProducts)
+  }
+
   return allProducts
 }
 
@@ -216,6 +220,60 @@ const UpdateWooCommerce = async (connect, data) => {
 }
 
 /**
+ * This function updates (regular_price, sale_price and stock_quantity) of the
+ * all products on input file
+ * @param  {object} wcConnect WooCommerce connection config
+ * @param {json}    inputData Json white status and data/message
+ */
+const SaveProductsCache = async (products) => {
+  const expires = Date.now() + cfgWC.cache.ttl * 1000
+  const dirCache = cfgWC.cache.dir;
+  const data = { expires, products }
+  // if cache dir not exist create
+  if (!fs.existsSync(dirCache)) {
+    fs.mkdirSync(dirCache);
+  }
+  fs.writeFileSync(`${dirCache}/products.json`, JSON.stringify(data, null, ' '));
+}
+
+/**
+ * This function updates (regular_price, sale_price and stock_quantity) of the
+ * all products on input file
+ * @param  {object} wcConnect WooCommerce connection config
+ * @param {json}    inputData Json white status and data/message
+ */
+const LoadProductsCache = async (config) => {
+  const cacheFile = `${cfgWC.cache.dir}/products.json`;
+  let status = ''
+  let data = {}
+  let products
+  let cacheExpire
+  // Try to read cache file.
+  try {
+    const rowData = fs.readFileSync(`${cacheFile}`)
+    cacheJSON = JSON.parse(rowData)
+    products = cacheJSON.products
+    cacheExpire = cacheJSON.expires  // Date when the cache expire
+    if ( cacheExpire > Date.now() ) {
+      const date = new Date(cacheExpire).toLocaleString()
+      logger.log(`The cache file is valid until ${ date }`)
+      status = 'successful'
+      data = products
+    } else {
+      // Reload products
+      const date = new Date(cacheExpire).toLocaleString()
+      status = 'failure'
+      data = { message: `Cache has expired at ${date}, need to reload all products` }
+    }
+  } catch (error) {
+    status = 'failure'
+    data = { message: `No such file or directory, open '${cacheFile}` }
+  }
+
+  return { status, data }
+}
+
+/**
  * Main BatchUpdateProcess
  * @param  {object} wcConnect WooCommerce connection config
  * @param {json}    inputData Json white status and data/message
@@ -223,7 +281,23 @@ const UpdateWooCommerce = async (connect, data) => {
 const BatchProcess = async (connect, data) => {
   const dataInput = data
   const batchData = []
-  const productsWoo = await GetAllProducts(connect) // Todos los productos de WooComerce
+
+  let productsWoo = {}
+  // if cache is avaliable
+  if ( cfgWC.cache.enabled ) {
+    const loadCahe = await LoadProductsCache()
+    if ( loadCahe.status === 'successful') {
+      logger.log('Will use the product cache')
+      productsWoo = loadCahe.data
+    } else {
+      logger.log(loadCahe.data.message, "ERROR")
+      productsWoo = await GetAllProducts(connect) // Todos los productos de WooComerce
+    }
+    // await SaveProductsCache(productsWoo)
+  } else {
+    productsWoo = await GetAllProducts(connect) // Todos los productos de WooComerce
+  }
+
   const toUpdate = {} // Products objects, only if exist in Excel file
 
   // Add price and stock to productsWoo
