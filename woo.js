@@ -1,10 +1,11 @@
-const fs = require('fs');
+const fs = require('fs')
 const { Command } = require('commander')
 const { Logger } = require('./libs/logfile')
 const { LoadConfig } = require('./libs/config')
 const { Excel } = require('./input/excel')
 const { Product } = require('./woocommerce/products')
 const { WooCommerce } = require('./woocommerce')
+const { sleep } = require('./libs/times')
 
 // Command line args
 const args = new Command()
@@ -25,11 +26,10 @@ var { cfgWC, cfgInput } = {}
 /**
  * This function get alls products (single and variable) and return ID and SKU
  * @param  {object} connect WooCommerce connection config
- * @return {json}           Json with status and data (all products or error message)
+ * @return {object}         Json with status and data (all products or error message)
  */
 const GetProducts = async (connect) => {
   let next = false
-  let status = 'failure'
   const data = {}
 
   // Main loop GetAllProducts
@@ -63,14 +63,15 @@ const GetProducts = async (connect) => {
 
 /**
  * Return variations of parent
- * @param  {number} parent  WooCommerce product ID
- * @return {json}           Json with status and data (all products or error message)
+ * @param  {object} connect   WooCommerce connection config
+ * @param  {number} parentID  WooCommerce product ID
+ * @return {object}           Json with status and data (all products or error message)
  */
 const GetVariations = async (connect, parentID) => {
   var variations = {}
   const response = await wcProducts.GetVariationsByParent(connect, parentID)
 
-  if ( response.status === 'successful' ) {
+  if (response.status === 'successful') {
     logger.log(`Getting variations from product ID:${parentID}`)
     response.data.forEach((product, i) => {
       variations[product.sku] = { id: product.id, type: 'variation', parent: parentID }
@@ -80,13 +81,12 @@ const GetVariations = async (connect, parentID) => {
     logger.log(`Getting variations from product ID:${response.data}`, 'ERROR')
     process.exit()
   }
-
 }
 
 /**
  * This function get alls products (single, variable and variations) and return ID and SKU (and parent)
  * @param  {object} connect WooCommerce connection config
- * @return {json}           Json with status and data (all products or error message)
+ * @return {object}           Json with status and data (all products or error message)
  */
 const GetAllProducts = async (connect) => {
   const allProducts = {}
@@ -95,12 +95,12 @@ const GetAllProducts = async (connect) => {
   // Get all products (simple and variable)
   const products = await GetProducts(connect)
 
-  Object.keys(products).forEach( (sku, i) => {
+  Object.keys(products).forEach((sku, i) => {
     const product = products[sku]
     // Make products object
-    allProducts[sku] = { id: product.id, type:product.type }
+    allProducts[sku] = { id: product.id, type: product.type }
     // Make parents list
-    if ( product.type === 'variable' ) {
+    if (product.type === 'variable') {
       parentIDs.push(product.id)
     }
   })
@@ -110,10 +110,10 @@ const GetAllProducts = async (connect) => {
     const parent = parentIDs.pop()
     const x = await GetVariations(connect, parent)
     // Concateneta allProducts + x
-    Object.assign(allProducts, x);
-  } while (parentIDs.length > 0);
+    Object.assign(allProducts, x)
+  } while (parentIDs.length > 0)
 
-  if ( cfgWC.cache ) {
+  if (cfgWC.cache) {
     await SaveProductsCache(allProducts)
   }
 
@@ -123,10 +123,12 @@ const GetAllProducts = async (connect) => {
 /**
  * This function updates (regular_price, sale_price and stock_quantity) single and variable products
  * @param  {object} connect WooCommerce connection config
- * @param {json}    data    Json white status and data/message
+ * @param  {object} data    Json white status and data/message
+ * @return {object}         Json with status
  */
 const UpdateProducts = async (connect, data) => {
   var responseUpdate = {}
+  var status = ''
   do {
     var productsLot = []
     var next = true
@@ -142,27 +144,30 @@ const UpdateProducts = async (connect, data) => {
 
     if (responseUpdate.status === 'successful') {
       logger.log(`Update products (primary and variable) ${productsLot.length} records (${data.length} are pending)`, 'SUCCESSFUL')
+      status = 'successful'
     } else {
       // Can't update all products
       next = false
       logger.log(`${responseUpdate.data.message}`, 'ERROR')
+      status = 'failure'
     }
   } while (data.length > 0 && next)
+  return { status }
 }
 
 /**
- * This function updates (regular_price, sale_price and stock_quantity)
- * of variation into variable producto (limit 100 variations by product)
+ * This function update all variations into all variable products
  * @param  {object} connect WooCommerce connection config
- * @param {json}    data    Json white status and data/message
+ * @param  {object} data    List of variable products
+ * @return {object}         Json with status
  */
 const UpdateVariations = async (connect, data) => {
-  // Group by parent
+  // Group product by parent
   const parents = {} // Object of products group by parentID
-  data.forEach( (product, i) => {
-    let parent = product.parent
+  data.forEach((product, i) => {
+    const parent = product.parent
     delete product.parent
-    if ( parents.hasOwnProperty(parent) ) {
+    if (parent in parents) {
       parents[parent].push(product)
     } else {
       parents[parent] = []
@@ -170,37 +175,48 @@ const UpdateVariations = async (connect, data) => {
     }
   })
 
+  var retryTimes = cfgWC.retry.times
+  var retryAwait = cfgWC.retry.await
   var next = true
+  var status = ''
   do {
-
-    let [parent] = Object.keys(parents)
-    let variations = parents[parent]
-    delete parents[parent]
-    // Query API - Update 100 records
-    responseUpdate = await wcProducts.UpdateVariations(connect, parent, variations)
+    const [parent] = Object.keys(parents)
+    const variations = parents[parent]
+    // Query API - Update max 100 records by parent.
+    const responseUpdate = await wcProducts.UpdateVariations(connect, parent, variations)
 
     if (responseUpdate.status === 'successful') {
+      delete parents[parent]
+      status = 'successful'
       logger.log(`Update variations of product id:${parent} records (${variations.length} are pending)`, 'SUCCESSFUL')
     } else {
-      // Can't update all products
-      next = false
-      logger.log(`${responseUpdate.data.message}`, 'ERROR')
+      // Can't update variation
+      if (retryTimes > 0) {
+        next = true
+        retryTimes -= 1
+        logger.log(`${responseUpdate} ... await and retry(${retryTimes})`, 'ERROR')
+        await sleep(retryAwait)
+      } else {
+        next = false
+        status = 'failure'
+        logger.log(`${responseUpdate}`, 'ERROR')
+      }
     }
-
-  } while ( Object.keys(parents).length > 0 && next )
+  } while (Object.keys(parents).length > 0 && next)
+  return { status }
 }
 
 /**
  * This function updates (regular_price, sale_price and stock_quantity) of the
  * all products on input file
- * @param  {object} wcConnect WooCommerce connection config
- * @param {json}    inputData Json white status and data/message
+ * @param  {object} connect  WooCommerce connection
+ * @param  {object} data     List of all products
  */
 const UpdateWooCommerce = async (connect, data) => {
   const products = [] // products (simple/variable)
   const variations = [] // products variation (variable's children)
 
-  Object.keys(data).forEach( (sku, i) => {
+  Object.keys(data).forEach((sku, i) => {
     switch (data[sku].type) {
       case 'simple':
         products.push(data[sku])
@@ -213,37 +229,36 @@ const UpdateWooCommerce = async (connect, data) => {
         break
     }
   })
-  await UpdateProducts(connect, products)
-  await UpdateVariations(connect, variations)
+  const rProducts = await UpdateProducts(connect, products)
+  if (rProducts.statuss !== 'successful') {
+    return rProducts // if something went wrong
+  }
 
-  return 'successful'
+  const rVariations = await UpdateVariations(connect, variations)
+  return rVariations
 }
 
 /**
- * This function updates (regular_price, sale_price and stock_quantity) of the
- * all products on input file
- * @param  {object} wcConnect WooCommerce connection config
- * @param {json}    inputData Json white status and data/message
+ * This function save a product file
+ * @param  {object} products Products list
  */
 const SaveProductsCache = async (products) => {
   const expires = Date.now() + cfgWC.cache.ttl * 1000
-  const dirCache = cfgWC.cache.dir;
+  const dirCache = cfgWC.cache.dir
+  const cacheFile = `${cfgWC.cache.dir}/${(new URL(cfgWC.url)).hostname}.json`
   const data = { expires, products }
   // if cache dir not exist create
   if (!fs.existsSync(dirCache)) {
-    fs.mkdirSync(dirCache);
+    fs.mkdirSync(dirCache)
   }
-  fs.writeFileSync(`${dirCache}/products.json`, JSON.stringify(data, null, ' '));
+  fs.writeFileSync(cacheFile, JSON.stringify(data, null, ' '))
 }
 
 /**
- * This function updates (regular_price, sale_price and stock_quantity) of the
- * all products on input file
- * @param  {object} wcConnect WooCommerce connection config
- * @param {json}    inputData Json white status and data/message
+ * This function load file cache
  */
-const LoadProductsCache = async (config) => {
-  const cacheFile = `${cfgWC.cache.dir}/products.json`;
+const LoadProductsCache = async () => {
+  const cacheFile = `${cfgWC.cache.dir}/${(new URL(cfgWC.url)).hostname}.json`
   let status = ''
   let data = {}
   let products
@@ -251,12 +266,12 @@ const LoadProductsCache = async (config) => {
   // Try to read cache file.
   try {
     const rowData = fs.readFileSync(`${cacheFile}`)
-    cacheJSON = JSON.parse(rowData)
+    const cacheJSON = JSON.parse(rowData)
     products = cacheJSON.products
-    cacheExpire = cacheJSON.expires  // Date when the cache expire
-    if ( cacheExpire > Date.now() ) {
+    cacheExpire = cacheJSON.expires // Date when the cache expire
+    if (cacheExpire > Date.now()) {
       const date = new Date(cacheExpire).toLocaleString()
-      logger.log(`The cache file is valid until ${ date }`)
+      logger.log(`The cache file is valid until ${date}`)
       status = 'successful'
       data = products
     } else {
@@ -267,40 +282,37 @@ const LoadProductsCache = async (config) => {
     }
   } catch (error) {
     status = 'failure'
-    data = { message: `No such file or directory, open '${cacheFile}` }
+    data = { message: `No such file or directory, open ${cacheFile}` }
   }
-
   return { status, data }
 }
 
 /**
  * Main BatchUpdateProcess
- * @param  {object} wcConnect WooCommerce connection config
- * @param {json}    inputData Json white status and data/message
+ * @param  {object}  connect WooCommerce connection
+ * @param  {object}  data    Excel file content
  */
 const BatchProcess = async (connect, data) => {
   const dataInput = data
-  const batchData = []
 
   let productsWoo = {}
   // if cache is avaliable
-  if ( cfgWC.cache.enabled ) {
+  if (cfgWC.cache.enabled) {
     const loadCahe = await LoadProductsCache()
-    if ( loadCahe.status === 'successful') {
+    if (loadCahe.status === 'successful') {
       logger.log('Will use the product cache')
       productsWoo = loadCahe.data
     } else {
-      logger.log(loadCahe.data.message, "ERROR")
+      logger.log(loadCahe.data.message, 'ERROR')
       productsWoo = await GetAllProducts(connect) // Todos los productos de WooComerce
     }
-    // await SaveProductsCache(productsWoo)
   } else {
     productsWoo = await GetAllProducts(connect) // Todos los productos de WooComerce
   }
 
   const toUpdate = {} // Products objects, only if exist in Excel file
 
-  // Add price and stock to productsWoo
+  // Add price and stock to productsWoo from Excel.
   dataInput.forEach((item, i) => {
     // Find SKU ()
     if (Object.keys(productsWoo).includes(item.sku.toString())) {
@@ -319,11 +331,7 @@ const BatchProcess = async (connect, data) => {
   logger.log(`Will try to update ${Object.keys(toUpdate).length} products`)
 
   const update = await UpdateWooCommerce(connect, toUpdate)
-  if ( update === 'successful' ) {
-    return 'successful'
-  } else {
-    return 'failure'
-  }
+  return update
 }
 
 /**
@@ -357,16 +365,16 @@ const main = async () => {
   }
 
   // Batch process
-  let batch = 'failure'
+  var batch = {}
   if (inputData.status === 'successful') {
     batch = await BatchProcess(wcConnect, inputData.data)
   }
 
   // Salida
-  if ( batch === 'successful' ) {
+  if (batch.status === 'successful') {
     logger.log('Apparently everything is fine, check your data', 'SUCCESSFUL')
   } else {
-    logger.log('Algo salio mal', 'ERROR')
+    logger.log('Something went wrong', 'ERROR')
   }
 }
 
