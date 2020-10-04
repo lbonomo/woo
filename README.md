@@ -5,14 +5,26 @@ By default, woo will be try to read `./config.json` file, but do you can to modi
 
 ```
 {
+  "version": 1,
   "woocommerce": {
-    "url": "https://your-wocommerce.com" ,
-    "consumerKey": "ck_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "consumerSecret": "cs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  },
-  "input": {
-    "filename": "./path-to-file.xlsx",
+    "url": "http://woocommerce.lndo.site/",
+    "consumerKey": "ck_11caec96c27db305e36cdb5b0b485fd7ffea633b",
+    "consumerSecret": "cs_119a3d4f3f2b92dc3d72e4b986a1662038960785",
+    "wpAPI": true,
+    "version": "wc/v3",
+    "cache": {
+      "enabled": true,
+      "dir": "./cache",
+      "ttl": 3600
+    },
+    "retry": {
+      "times": 5,
+      "wait": 1
     }
+  },
+  "source": {
+    "filename": "./example.xlsx"
+  }
 }
 ```
 
