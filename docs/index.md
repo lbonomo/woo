@@ -8,21 +8,35 @@ If you like to download the binary version, use this links
 ## Config
 The config file is a json format similar this:
 
+
 ```json
 {
   "version": 1,
   "woocommerce": {
-    "url": "http://woocommerce.lndo.site/" ,
-    "consumerKey": "ck_a6849f91fc021160c8fde2dadc9aa91aa733f46d",
-    "consumerSecret": "cs_29abba0e6335270b904328494d908efa2937479b",
+    "url": "http://woocommerce.lndo.site/",
+    "consumerKey": "ck_11caec96c27db305e36cdb5b0b485fd7ffea633b",
+    "consumerSecret": "cs_119a3d4f3f2b92dc3d72e4b986a1662038960785",
     "wpAPI": true,
-    "version": "wc/v3"
+    "version": "wc/v3",
+    "cache": {
+      "enabled": true,
+      "dir": "./cache",
+      "ttl": 3600
+    },
+    "retry": {
+      "times": 5,
+      "wait": 1
+    }
   },
   "source": {
-    "filename": "example.xlsx"
+    "filename": "./example.xlsx"
   }
 }
 ```
+
+- `woocommerce.cache.ttl` is time to live of cache in seconds
+- `woocommerce.retry.wait` is time between retry in seconds
+
 You can download an example at this [link](https://github.com/lbonomo/woo/blob/master/config.json.example?raw=true)
 
 ## Input

@@ -54,32 +54,31 @@ const Product = class {
       per_page: 100 // 100 is the max permit value.
     }
 
-    const response = await connect.get('products', params)
+    const products = await connect.get('products', params)
+      .then((result) => {
+        return {
+          status: 'successful',
+          data: result.data
+        }
+      })
+      .catch((error) => {
+        let message = ''
+        switch (error.response.status) {
+          case 404:
+            message = 'Not Found'
+            break
+          case 401:
+            message = 'Consumer key is invalid'
+            break
+          default:
+        }
+        return {
+          status: 'failure',
+          data: { message: message }
+        }
+      })
 
-    // successful - failure
-    if (response.status === 200) {
-      return {
-        status: 'successful',
-        data: response.data
-      }
-    } else {
-      let message
-      // TODO - find data la respuesta puede venir en response o response.response.
-      switch (response.status) {
-        case 404:
-          message = 'Server not found. Please verify your config file'
-          break
-        case 401:
-          message = 'Unauthorized. Please verify "consumerKey" and "consumerSecret" in your config file'
-          break
-        default:
-          message = `(${response.response.status}) ${response.response.data.message}`
-      }
-      return {
-        status: 'failure',
-        data: { message: message }
-      }
-    }
+    return products
   }
 
   /**

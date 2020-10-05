@@ -29,14 +29,18 @@ var { cfgWC, cfgInput } = {}
  * @return {object}         Json with status and data (all products or error message)
  */
 const GetProducts = async (connect) => {
+  // TODO - Review
   let next = false
   const data = {}
+  var status = ''
 
   // Main loop GetAllProducts
   var page = 1
   do {
     // Query API, return object {status: 'successful', data: [...]}.
+
     logger.log(`Getting products from page ${page}`)
+
     const r = await wcProducts.GetProducts(connect, page)
 
     if (r.status === 'successful') {
@@ -45,20 +49,23 @@ const GetProducts = async (connect) => {
       })
       if (r.data.length < 100) {
         next = false
-        // status = 'successful'
+        status = 'successful'
       } else {
         // Mas de 100 registros
-        // status = 'failure'
         next = true
         page += 1
       }
     } else {
-      logger.log(`Getting variations from product ID:${r.data}`, 'ERROR')
-      process.exit()
+      logger.log(`${r.data.message}`, 'ERROR')
+      await sleep(1) // TODO - Await to logger.
+      process.exit(1)
     }
   } while (next)
 
-  return data
+  return {
+    status: status,
+    data: data
+  }
 }
 
 /**
@@ -76,10 +83,14 @@ const GetVariations = async (connect, parentID) => {
     response.data.forEach((product, i) => {
       variations[product.sku] = { id: product.id, type: 'variation', parent: parentID }
     })
-    return variations
+    return {
+      status: 'successful',
+      data: variations
+    }
   } else {
-    logger.log(`Getting variations from product ID:${response.data}`, 'ERROR')
-    process.exit()
+    logger.log(`${response.data}`, 'ERROR')
+    await sleep(1) // TODO - Await to logger.
+    process.exit(1)
   }
 }
 
@@ -93,7 +104,10 @@ const GetAllProducts = async (connect) => {
   const parentIDs = []
 
   // Get all products (simple and variable)
-  const products = await GetProducts(connect)
+  const rProducts = await GetProducts(connect)
+  const products = rProducts.data
+
+  // if GetProducts has an error, process exit
 
   Object.keys(products).forEach((sku, i) => {
     const product = products[sku]
@@ -108,15 +122,17 @@ const GetAllProducts = async (connect) => {
   // Get all variations
   do {
     const parent = parentIDs.pop()
-    const x = await GetVariations(connect, parent)
+    const variation = await GetVariations(connect, parent)
+    // if GetProducts has an error, process exit
     // Concateneta allProducts + x
-    Object.assign(allProducts, x)
+    Object.assign(allProducts, variation.data)
   } while (parentIDs.length > 0)
 
   if (cfgWC.cache) {
     await SaveProductsCache(allProducts)
   }
 
+  // Return only products
   return allProducts
 }
 
@@ -182,13 +198,13 @@ const UpdateVariations = async (connect, data) => {
   do {
     const [parent] = Object.keys(parents)
     const variations = parents[parent]
-    // Query API - Update max 100 records by parent.
+    // If variations.length is greater than 100, it is broken.
     const responseUpdate = await wcProducts.UpdateVariations(connect, parent, variations)
 
     if (responseUpdate.status === 'successful') {
       delete parents[parent]
       status = 'successful'
-      logger.log(`Update variations of product id:${parent} records (${variations.length} are pending)`, 'SUCCESSFUL')
+      logger.log(`Update variations of product id:${parent} records (${variations.length})`, 'SUCCESSFUL')
     } else {
       // Can't update variation
       if (retryTimes > 0) {
@@ -230,7 +246,7 @@ const UpdateWooCommerce = async (connect, data) => {
     }
   })
   const rProducts = await UpdateProducts(connect, products)
-  if (rProducts.statuss !== 'successful') {
+  if (rProducts.status !== 'successful') {
     return rProducts // if something went wrong
   }
 
