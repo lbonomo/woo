@@ -145,27 +145,35 @@ const GetAllProducts = async (connect) => {
 const UpdateProducts = async (connect, data) => {
   var responseUpdate = {}
   var status = ''
+  var retryTimes = cfgWC.retry.times
+  var retryAwait = cfgWC.retry.await
   do {
-    var productsLot = []
     var next = true
-    // TODO - Esto no queda lindo.
+    // max is 100 or data.length
     var max = (data.length <= 100) ? data.length : 100
-    // Make lot of 100 products
-    for (var i = 1; i <= max; i++) {
-      productsLot.push(data.shift())
-    }
+    var productsLot = data.slice(0, max)
 
     // Query API - Update 100 records
     responseUpdate = await wcProducts.UpdateProducts(connect, productsLot)
 
     if (responseUpdate.status === 'successful') {
+      // Make lot of 100 products
       logger.log(`Update products (primary and variable) ${productsLot.length} records (${data.length} are pending)`, 'SUCCESSFUL')
+      // Remove products updates
+      for (var i = 1; i <= max; i++) { data.shift() }
       status = 'successful'
     } else {
       // Can't update all products
-      next = false
-      logger.log(`${responseUpdate.data.message}`, 'ERROR')
-      status = 'failure'
+      if (retryTimes > 0) {
+        next = true
+        retryTimes -= 1
+        logger.log(`${responseUpdate.data.message} ... await and retry(${retryTimes})`, 'ERROR')
+        await sleep(retryAwait)
+      } else {
+        next = false
+        logger.log(`${responseUpdate.data.message}`, 'ERROR')
+        status = 'failure'
+      }
     }
   } while (data.length > 0 && next)
   return { status }
@@ -210,12 +218,12 @@ const UpdateVariations = async (connect, data) => {
       if (retryTimes > 0) {
         next = true
         retryTimes -= 1
-        logger.log(`${responseUpdate} ... await and retry(${retryTimes})`, 'ERROR')
+        logger.log(`${responseUpdate.data.message} ... await and retry(${retryTimes})`, 'ERROR')
         await sleep(retryAwait)
       } else {
         next = false
         status = 'failure'
-        logger.log(`${responseUpdate}`, 'ERROR')
+        logger.log(`${responseUpdate.data.message}`, 'ERROR')
       }
     }
   } while (Object.keys(parents).length > 0 && next)
